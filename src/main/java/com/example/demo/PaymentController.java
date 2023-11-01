@@ -3,9 +3,9 @@ package com.example.demo;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,15 +13,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
 import com.paytm.pg.merchant.PaytmChecksum;
 
+
 @Controller
+@RequiredArgsConstructor
 public class PaymentController {
 
-//    @Autowired
     private PaytmDetailPojo paytmDetailPojo;
-//    @Autowired
+
     private Environment env;
 
     @GetMapping("/")
@@ -35,8 +35,7 @@ public class PaymentController {
                                     @RequestParam(name = "ORDER_ID") String orderId) throws Exception {
 
         ModelAndView modelAndView = new ModelAndView("redirect:" + paytmDetailPojo.getPaytmUrl());
-        TreeMap<String, String> parameters = new TreeMap<>();
-        paytmDetailPojo.getDetails().forEach((k, v) -> parameters.put(k, v));
+        TreeMap<String, String> parameters = new TreeMap<>(paytmDetailPojo.getDetails());
         parameters.put("MOBILE_NO", env.getProperty("paytm.mobile"));
         parameters.put("EMAIL", env.getProperty("paytm.email"));
         parameters.put("ORDER_ID", orderId);
