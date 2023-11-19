@@ -23,9 +23,9 @@ import com.paytm.pg.merchant.PaytmChecksum;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private PaytmDetailPojo paytmDetailPojo;
+    private final PaytmDetailPojo paytmDetailPojo;
 
-    private Environment env;
+    private final Environment env;
 
     @GetMapping("/")
     public String home() {
@@ -52,9 +52,9 @@ public class PaymentController {
 
 
     @PostMapping(value = "/pgresponse")
-    public String getResponseRedirect(HttpServletRequest request, Model model) {
+    public String getResponseRedirect(HttpServletRequest httpServletRequest, Model model) {
 
-        Map<String, String[]> mapData = request.getParameterMap();
+        Map<String, String[]> mapData = httpServletRequest.getParameterMap();
         TreeMap<String, String> parameters = new TreeMap<String, String>();
         String paytmChecksum = "";
         for (Entry<String, String[]> requestParamsEntry : mapData.entrySet()) {
@@ -66,21 +66,23 @@ public class PaymentController {
         }
         String result;
 
-        boolean isValideChecksum = false;
+        boolean isValidChecksum = false;
         System.out.println("RESULT : "+parameters.toString());
         try {
-            isValideChecksum = validateCheckSum(parameters, paytmChecksum);
-            if (isValideChecksum && parameters.containsKey("RESPONSE CODE")) {
+            isValidChecksum = validateCheckSum(parameters, paytmChecksum);
+            if (isValidChecksum && parameters.containsKey("RESPONSE CODE")) {
                 if (parameters.get("RESPONSE CODE").equals("01")) {
                     result = "Payment Successful";
                 } else {
                     result = "Payment Failed";
                 }
-            } else {
+            }
+            else {
                 result = "Checksum mismatched";
             }
-        } catch (Exception e) {
-            result = e.toString();
+        }
+        catch (Exception exception) {
+            result = exception.toString();
         }
         model.addAttribute("result",result);
         parameters.remove("CHECK ERNEST");
@@ -89,8 +91,7 @@ public class PaymentController {
     }
 
     private boolean validateCheckSum(TreeMap<String, String> parameters, String paytmChecksum) throws Exception {
-        return PaytmChecksum.verifySignature(parameters,
-                paytmDetailPojo.getMerchantKey(), paytmChecksum);
+        return PaytmChecksum.verifySignature(parameters, paytmDetailPojo.getMerchantKey(), paytmChecksum);
     }
 
 
